@@ -1,0 +1,13 @@
+
+
+1) high tedency in month and week
+
+2) RSI sub 35, 1h 
+
+3) BUY, hold
+
+4) SELL on RSI > 50 and price on 
+    > +5%  : 25% of order
+    > +10% : 25% of order
+    > +12% : 25% of order
+    > +15% : 25% of order
