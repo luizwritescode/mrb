@@ -1,0 +1,12 @@
+.wrapper {
+    width: 100%;
+    margin: 0 auto;
+    padding: 10px;
+    display: flex;
+    min-height: calc(100vh - 4rem);
+    overflow-y: auto;
+}
+
+.main {
+    background: #333;
+}

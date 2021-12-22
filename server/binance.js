@@ -1,6 +1,12 @@
 import Binance from 'node-binance-api'
 const log = console.log;
 
+import dotenv from 'dotenv'
+dotenv.config()
+
+if(!process.env.BINANCE_API_KEY)
+    log("[!] Invalid API KEY" )
+
 const binance = new Binance().options({
     APIKEY: process.env.BINANCE_API_KEY,
     APISECRET: process.env.BINANCE_SECRET,
@@ -8,9 +14,8 @@ const binance = new Binance().options({
     recvWindow: 59999
 })
 
-
 export async function prices() {
-    log("getting price tickers ...")
+    log("[!] getting price tickers ...")
 
     let tickers = {}
     await binance.prices()
@@ -54,36 +59,46 @@ export async function getCandlesticks(market, tf) {
 export async function getBalance() {
     let ticker = await binance.prices()
     
-    log( "getting balance ... \n")
-    binance.balance( (e, b) => {
-        if (e) return console.error(e);
+    log( "[!] getting balances ... \n")
+    
+    let balance = {total: 0}
 
-        
-        log ("balance: " )
-        
-        let total = 0
-        Object.entries(b).map( async coin => {
-            let avail = parseFloat(coin[1].available).toFixed(4);
-            if( avail > 0.0) {
+    let promise = new Promise(async function (resolve, reject) {
 
-                let price
-                if(coin[0] == 'USDT')
+        await binance.balance( (e, b) => {
+            if (e) return reject(e);
+            
+            log ("balance: " )
+            
+            let total = 0
+            Object.entries(b).map( coin => {
+                let avail = parseFloat(coin[1].available).toFixed(4);
+                if( avail > 0.0) {
+                    
+                    let price
+                    if(coin[0] == 'USDT')
                     price = avail
-                else
+                    else
                     price = ticker[coin[0] + 'USDT'] || ticker['USDT' + coin[0]]
+                    
+                    
+                    let dolar_price =  parseFloat(price * avail).toFixed(2)
+                    
+                    log ( coin[0] + ": " + avail + '\t$ ' + dolar_price)
+                    
+                    balance[coin[0]] = {amount: avail, price: price, total: dolar_price}
+                    
+                    balance["total"] += parseFloat(dolar_price)
+                    
+                }
+            })
 
-
-                let dolar_price =  parseFloat(price * avail).toFixed(2)
-
-                log ( coin[0] + ": " + avail + '\t$ ' + dolar_price)
-
-                total += parseFloat(dolar_price)
-
-            }
+            resolve(balance)
         })
-
-        log('\ntotal: ' + parseFloat(total).toFixed(2))
     })
+
+    return promise
+        
 }
 
 
@@ -161,24 +176,19 @@ export async function getOpenOrders() {
             log("no orders")
     })
 }
-export async function getTrades() {
-    rl.question("getting trades for ... ", ans => {
-        
-        binance.trades( ans ) .then( (b) => {
-            
-            log ("trades: \n" )
+
+export async function getTrades(symbol) {
+     
     
-            b = Object.values(b)
-    
-            b.map( trade => {
-               log(trade)
+    async function executor(resolve, reject) {
+
+            binance.trades(symbol, (e, t, symb) => {
+                                
+                resolve( t )
             })
-    
-            if( b.length == 0 )
-                log("no trades")
-            })
-            rl.close()
-        })
+    }     
+
+    return new Promise(executor)
 }
 
 

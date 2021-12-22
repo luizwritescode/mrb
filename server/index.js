@@ -1,16 +1,10 @@
 #!/usr/bin/env node
-import dotenv from 'dotenv'
-dotenv.config()
-
 import fs from 'fs'
-import Binance from 'node-binance-api'
 
 import { printMenu, printTA } from "./tty.js"
 import Bot from './bot.js'
-import TradingView from './tradingview.js'
 
-import app from './server.js'
-import Puppet from './master.js'
+import { startServer } from './server.js'
 
 import chalk from 'chalk'
 const log = console.log;
@@ -20,15 +14,22 @@ import binance, { prices, getBalance, getOpenOrders, getFuturesPositions} from '
 var current = 0;
 var context = "home"
 var online = false
+var mode = 1 // 1 WEB MODE
+             // 0 TERMINAL MODE
 
 const bot = new Bot();
 
-console.log(process.env.BINANCE_API_KEY)
 
-if(binance)
+if(binance && process.env.BINANCE_API_KEY) {
+    console.log("[*] Binance API: ", chalk.bold.greenBright("Connected"))
     init()
-else
+
+}
+else {
+    console.log("[*] Binance API: ", chalk.bold.redBright("Offline"))
     log("could not communicate with binance")
+}
+
 
 const endpoint = "https://dapi.binance.com"
 
@@ -36,6 +37,16 @@ const endpoint = "https://dapi.binance.com"
 //             input: process.stdin,
 //             output: process.stdout
 //         })
+    
+function init() 
+{
+    startServer()
+
+    if ( mode == 0 ) {
+        printMenu("home", 0, bot)
+        bindKeys()
+    }
+}
 
 async function start_bot() {
     
@@ -47,12 +58,6 @@ async function start_bot() {
     let now = new Date(Date.now())
 
     log(`Initializing bot @ ${now} ...`)
-
-    //STARTING TRADINGVIEW INDICATORS
-    //await TradingView.authorize()
-    //const pup = new Puppet()
-
-    //await pup.open()
     
     
 }
@@ -112,7 +117,6 @@ function loadJson(filename) {
     return data
 }
 
-
 function bindKeys() {
   
     process.stdin.on('keypress', (str, key) => {
@@ -168,12 +172,7 @@ function bindKeys() {
     });
 }
 
-    
-function init() 
-{
-    bindKeys()
-    printMenu("home", 0, bot)
-}
+
 
 // CONTEXT CHANGERS
 function Trade() {
@@ -204,49 +203,3 @@ async function marketBuy()
 {
 
 }
-
-// function getEndpoint() {
-//     const rl = readline.createInterface({
-//         input: process.stdin,
-//         output: process.stdout
-//     })
-//     var params = {
-//         "timestamp": Date.now(),
-//         "recvWindow": 99999,
-//     }
-
-//     const sig = getSignature(params)
-//     params["signature"] = sig
-
-//     rl.question('endpoint: ', (ep) => {
-//         axios({
-//                 "method": "GET",
-//                 "url": "https://dapi.binance.com" + ep,
-//                 "headers": {
-//                     "X-MBX-APIKEY": API_KEY,
-//                 },
-//                 "params": params
-//             })
-//             .then((response) => {
-//                 console.log("data :" + response.data);
-//             })
-//             .catch(e => console.log(e))
-
-//             rl.close()
-//     })
-
-    
-// }
-
-// function getSignature(params) {
-//     const queryString = Object.keys(params)
-//     .map((key) => `${key}=${params[key]}`)
-//     .join("&");
-
-//     const sig = createHmac("sha256", SECRET_KEY)
-//         .update(queryString)
-//         .digest("hex");
-
-//     return sig ;
-    
-// }

@@ -132,6 +132,21 @@ export default class Bot {
         return {RSI: RSI14, EMASHORT: EMA12, EMALONG: EMA26, TREND: emaTrend, PERCENT: change_percent}
     }
 
+    async poll(symbol) {
+
+        this.set_status("fetching")
+        this.set_symbol(symbol)
+    
+        this.set_trend(this.symbol, '1M', await this.get_trend(this.symbol, '1M'))
+        this.set_trend(this.symbol, '1w', await this.get_trend(this.symbol, '1w'))
+        this.set_trend(this.symbol, '1d', await this.get_trend(this.symbol, '1d'))
+        this.set_trend(this.symbol, '4h', await this.get_trend(this.symbol, '4h'))
+        this.set_trend(this.symbol, '1h', await this.get_trend(this.symbol, '1h'))
+        this.set_trend(this.symbol, '5m', await this.get_trend(this.symbol, '5m'))
+    
+        this.set_status("ta")
+    }
+
     get_symbol()
     {
         return this.symbol
