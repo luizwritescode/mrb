@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -14,36 +14,92 @@ const rows = [ {
 } ]
 
 
-export default function BasicTable() {
+export default function BasicTable(props) {
+
+  const [tickers, setTickers] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [rows, setRows] = useState([])
+
+  console.log(props.data)
+  useEffect( () => {
+    fetchData()
+  }, [rows])
+
+  const fetchData = () => {
+    setLoading(true)
+
+      fetch('/tickers')
+      .then( t => {
+        setTickers(t)
+        setLoading(false)
+      }
+    )
+    
+  }
+
+  
     return (
       <TableContainer sx={{ width:'100%' }} component={Paper}>
         <Table  aria-label="simple table">
           <TableHead>
             <TableRow>
-              <TableCell>Coin</TableCell>
-              <TableCell align="right">Amount</TableCell>
-              <TableCell align="right">Value (BTC)</TableCell>
-              <TableCell align="right">Value (USD)</TableCell>
-              <TableCell align="right">Value (BRL)</TableCell>
+              {
+                props.fields.map( (field, i) => {
+                  return <TableCell key={i} align="center">{field}</TableCell>
+                })
+              }
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
-              <TableRow
-                key={row.name}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">
-                  {row.name}
-                </TableCell>
-                <TableCell align="right">{row.amount}</TableCell>
-                <TableCell align="right">{row.value}</TableCell>
-                <TableCell align="right">{row.value}</TableCell>
-                <TableCell align="right">{row.value}</TableCell>
-              </TableRow>
-            ))}
+            
+            {
+            loading ? (
+                <div>
+                  loading ...
+                </div>
+              ) :
+              renderRows(props.data)
+           }
+
+          
           </TableBody>
         </Table>
       </TableContainer>
     );
   }
+
+  const renderRows = (data) => {
+    if(!data) return []
+    
+    let rows = [Object.keys(data).map((row, i) => {
+    
+    if(row === "total") return
+
+
+    return (
+      <TableRow
+      key={row}
+      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+      >
+      <TableCell component="th" scope="row">
+        {row}
+      </TableCell>
+      <TableCell align="right">{data[row].amount}</TableCell>
+      <TableCell align="right">{data[row].price}</TableCell>
+      <TableCell align="right">{data[row].total}</TableCell>
+      <TableCell align="right">{data[row].price}</TableCell>
+    </TableRow>
+    )
+
+  })]
+
+  rows.push( <TableRow
+    key="total"
+    sx={{ "tr": {border: 0}}}>
+      <TableCell align="right">Total: </TableCell>
+      <TableCell align="right">${data.total}</TableCell>
+
+    </TableRow>)
+
+    return rows
+}

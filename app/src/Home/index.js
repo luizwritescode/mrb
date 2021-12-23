@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import Card from '../components/Card'
 import BasicTable from '../components/BasicTable'
 
@@ -8,10 +8,15 @@ import './styles.scss'
 
 export default function Home() {
 
-    const [state, setState] = useState({balances: false})
+    const [state, setState] = useState({balances: null})
 
-    get('/balances')
-        .then( bal => setState( {...state, balances: bal}) )
+    
+    useEffect( () => {
+
+        get('/balances')
+        .then( bal => setState( {balances: bal}) )
+        
+    }, [])
 
     return (
         <div className='main wrapper'>
@@ -19,7 +24,7 @@ export default function Home() {
             <Grid container spacing={2}>
                 <Grid item xs={6} >
                     <Card title="Balance">
-                        <BasicTable/>
+                        <BasicTable fields={["Coin", "Amount","Price", "Value (USD)", "Value (BTC)"]} data = {state.balances}/>
                     </Card>
                 </Grid>
 

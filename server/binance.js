@@ -178,13 +178,20 @@ export async function getOpenOrders() {
 }
 
 export async function getTrades(symbol) {
-     
     
+    process.stdout.write(`[*] getting trades for symbol  ${symbol}  ... `)
     async function executor(resolve, reject) {
 
-            binance.trades(symbol, (e, t, symb) => {
-                                
-                resolve( t )
+            await binance.trades(symbol, (e, t, symb) => {
+                if (e) {
+                    let body = JSON.parse( e.body )
+                    console.log("[!] BINANCE ERROR ", body.code, " : ", body.msg, " ", symbol)
+                    reject(e)        
+                } else {
+                    process.stdout.write("done.\n")
+                    resolve( t )
+                }
+
             })
     }     
 
